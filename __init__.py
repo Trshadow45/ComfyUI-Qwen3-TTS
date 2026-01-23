@@ -1,3 +1,5 @@
+__version__ = "1.0.1"
+
 from .nodes import (
     Qwen3TTSLoader,
     Qwen3TTSCustomVoice,
