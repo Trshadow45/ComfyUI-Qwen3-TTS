@@ -1,15 +1,15 @@
 {
   "id": "6bbd3374-8f9b-4fab-b971-196326e9241c",
   "revision": 0,
-  "last_node_id": 36,
-  "last_link_id": 52,
+  "last_node_id": 41,
+  "last_link_id": 56,
   "nodes": [
     {
       "id": 22,
       "type": "Qwen3TTSLoader",
       "pos": [
-        -836.9736265560047,
-        -1512.199106884452
+        -823.9279221050331,
+        -1506.8443837459558
       ],
       "size": [
         325.40390625,
@@ -24,7 +24,7 @@
           "name": "model_obj",
           "type": "QWEN3_MODEL",
           "links": [
-            39
+            55
           ]
         }
       ],
@@ -43,8 +43,8 @@
       "id": 26,
       "type": "SaveAudio",
       "pos": [
-        10.713456408611387,
-        -1509.3651103101167
+        -19.105296622181186,
+        -1506.8443837459558
       ],
       "size": [
         270,
@@ -57,7 +57,7 @@
         {
           "name": "audio",
           "type": "AUDIO",
-          "link": 41
+          "link": 56
         }
       ],
       "outputs": [],
@@ -67,15 +67,15 @@
       ]
     },
     {
-      "id": 27,
+      "id": 41,
       "type": "Qwen3TTSCustomVoice",
       "pos": [
-        -464.16419797181095,
-        -1512.3117369307383
+        -458.81465623860714,
+        -1506.8443837459558
       ],
       "size": [
-        429.2156137101043,
-        439.114163815623
+        400,
+        382
       ],
       "flags": {},
       "order": 1,
@@ -84,7 +84,7 @@
         {
           "name": "model_obj",
           "type": "QWEN3_MODEL",
-          "link": 39
+          "link": 55
         }
       ],
       "outputs": [
@@ -92,7 +92,7 @@
           "name": "AUDIO",
           "type": "AUDIO",
           "links": [
-            41
+            56
           ]
         }
       ],
@@ -101,8 +101,11 @@
       },
       "widgets_values": [
         "其实我真的有发现，我是一个特别善于观察别人情绪的人。\n",
-        "Uncle_Fu (Chinese - Deep, Mellow, Mature Male)",
+        "Vivian (Chinese - Bright, Sharp, Young Female)",
         "Auto",
+        "Batch (Separate)",
+        0,
+        "randomize",
         "",
         1024,
         0.7,
@@ -114,16 +117,16 @@
   ],
   "links": [
     [
-      39,
+      55,
       22,
       0,
-      27,
+      41,
       0,
       "QWEN3_MODEL"
     ],
     [
+      56,
       41,
-      27,
       0,
       26,
       0,
@@ -134,10 +137,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 1.180465191272431,
+      "scale": 1.0731501738840283,
       "offset": [
-        1050.283306311409,
-        1728.1977975796526
+        857.4779600100343,
+        1820.8731266014909
       ]
     },
     "frontendVersion": "1.37.11",

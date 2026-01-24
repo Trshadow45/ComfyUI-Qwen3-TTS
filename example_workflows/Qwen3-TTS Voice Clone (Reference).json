@@ -1,14 +1,14 @@
 {
   "id": "9c31c47d-f3d6-43ba-bbe2-63cda1c7abb1",
   "revision": 0,
-  "last_node_id": 36,
-  "last_link_id": 52,
+  "last_node_id": 38,
+  "last_link_id": 61,
   "nodes": [
     {
       "id": 6,
       "type": "LoadAudio",
       "pos": [
-        -889.0429270486833,
+        -882.7709944925305,
         -137.3241575821094
       ],
       "size": [
@@ -25,7 +25,7 @@
           "type": "AUDIO",
           "links": [
             47,
-            51
+            59
           ]
         }
       ],
@@ -42,8 +42,8 @@
       "id": 8,
       "type": "SaveAudio",
       "pos": [
-        289.7060057297369,
-        -369.29023545326413
+        305.8989952383505,
+        -370.6041931450887
       ],
       "size": [
         270,
@@ -56,7 +56,7 @@
         {
           "name": "audio",
           "type": "AUDIO",
-          "link": 52
+          "link": 61
         }
       ],
       "outputs": [],
@@ -70,7 +70,7 @@
       "type": "Qwen3TTSLoader",
       "pos": [
         -1019.9203095894967,
-        -371.8259153779695
+        -370.6041931450887
       ],
       "size": [
         409.789907914605,
@@ -86,7 +86,7 @@
           "type": "QWEN3_MODEL",
           "links": [
             48,
-            50
+            60
           ]
         }
       ],
@@ -102,67 +102,10 @@
       ]
     },
     {
-      "id": 34,
-      "type": "Qwen3TTSVoiceClone",
-      "pos": [
-        -149.09416079401456,
-        -369.567510077956
-      ],
-      "size": [
-        400,
-        350
-      ],
-      "flags": {},
-      "order": 3,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model_obj",
-          "type": "QWEN3_MODEL",
-          "link": 50
-        },
-        {
-          "name": "ref_audio",
-          "shape": 7,
-          "type": "AUDIO",
-          "link": 51
-        },
-        {
-          "name": "voice_clone_prompt",
-          "shape": 7,
-          "type": "QWEN3_PROMPT",
-          "link": 49
-        }
-      ],
-      "outputs": [
-        {
-          "name": "AUDIO",
-          "type": "AUDIO",
-          "links": [
-            52
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "Qwen3TTSVoiceClone"
-      },
-      "widgets_values": [
-        "音频和文本要同步，这里填写需要生成的配音文本",
-        "Chinese",
-        "",
-        false,
-        1024,
-        0.7,
-        0.8,
-        50,
-        1.05
-      ]
-    },
-    {
       "id": 35,
       "type": "Qwen3TTSVoiceClonePrompt",
       "pos": [
-        -577.2442675198356,
+        -571.4539360371443,
         -370.6041931450887
       ],
       "size": [
@@ -189,7 +132,7 @@
           "name": "voice_clone_prompt",
           "type": "QWEN3_PROMPT",
           "links": [
-            49
+            58
           ]
         }
       ],
@@ -199,6 +142,66 @@
       "widgets_values": [
         false,
         "第三个登场的可就厉害了 现在都找不到人跟他结婚 没办法 相亲对象看到这个宣传视频掉头就跑 卡特使用的武器名为剁刀 和上期的杀猪刀有点像\n"
+      ]
+    },
+    {
+      "id": 38,
+      "type": "Qwen3TTSVoiceClone",
+      "pos": [
+        -132.77747039939692,
+        -370.6041931450887
+      ],
+      "size": [
+        400,
+        422
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model_obj",
+          "type": "QWEN3_MODEL",
+          "link": 60
+        },
+        {
+          "name": "ref_audio",
+          "shape": 7,
+          "type": "AUDIO",
+          "link": 59
+        },
+        {
+          "name": "voice_clone_prompt",
+          "shape": 7,
+          "type": "QWEN3_PROMPT",
+          "link": 58
+        }
+      ],
+      "outputs": [
+        {
+          "name": "AUDIO",
+          "type": "AUDIO",
+          "links": [
+            61
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Qwen3TTSVoiceClone"
+      },
+      "widgets_values": [
+        "我想用这个声音说这句话，效果不错。\n",
+        "Chinese",
+        "Batch (Separate)",
+        35285030240593,
+        "randomize",
+        "",
+        false,
+        1024,
+        0.7,
+        0.8,
+        50,
+        1.05
       ]
     }
   ],
@@ -220,32 +223,32 @@
       "QWEN3_MODEL"
     ],
     [
-      49,
+      58,
       35,
       0,
-      34,
+      38,
       2,
       "QWEN3_PROMPT"
     ],
     [
-      50,
-      33,
-      0,
-      34,
-      0,
-      "QWEN3_MODEL"
-    ],
-    [
-      51,
+      59,
       6,
       0,
-      34,
+      38,
       1,
       "AUDIO"
     ],
     [
-      52,
-      34,
+      60,
+      33,
+      0,
+      38,
+      0,
+      "QWEN3_MODEL"
+    ],
+    [
+      61,
+      38,
       0,
       8,
       0,
@@ -256,10 +259,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.8769226950000019,
+      "scale": 0.7972024500000017,
       "offset": [
-        1284.538961066339,
-        764.6997206135488
+        1210.1880514915795,
+        760.0242799807804
       ]
     },
     "frontendVersion": "1.37.11",
