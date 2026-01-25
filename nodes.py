@@ -19,6 +19,7 @@ HAS_MODELSCOPE = False
 HAS_HUGGINGFACE = False
 HAS_FUNASR = False
 HAS_LIBROSA = False
+HAS_FFMPEG_PYTHON = False
 
 try:
     from funasr import AutoModel
@@ -80,9 +81,7 @@ EMOTION_MAP = {
 }
 
 if "TTS" not in folder_paths.folder_names_and_paths:
-    folder_paths.add_model_folder_path(
-        "TTS", os.path.join(folder_paths.models_dir, "TTS")
-    )
+    folder_paths.add_model_folder_path("TTS", os.path.join(folder_paths.models_dir, "TTS"))
 
 
 def safe_get_device(model):
@@ -124,8 +123,11 @@ def apply_qwen3_patches(model, attn_mode="sdpa"):
             if a is None:
                 continue
             if isinstance(a, str):
-                wav, sr = self._load_audio_to_np(a)
-                out.append([wav.astype(np.float32), int(sr)])
+                try:
+                    wav, sr = self._load_audio_to_np(a)
+                    out.append([wav.astype(np.float32), int(sr)])
+                except Exception as e:
+                    logger.error(f"Failed to load audio file {a}: {e}")
             elif (
                 isinstance(a, (tuple, list))
                 and len(a) == 2
@@ -273,13 +275,17 @@ class Qwen3TTSLoader:
             attn_impl = "sdpa"
 
         try:
+            if "Qwen3TTSModel" not in globals():
+                 raise ImportError("Qwen3TTSModel not imported. Is qwen-tts installed?")
+
             model = Qwen3TTSModel.from_pretrained(
                 local_model_path,
                 device_map=device,
                 dtype=torch_dtype,
                 attn_implementation=attn_impl,
             )
-            apply_qwen3_patches(model)
+            apply_qwen3_patches(model, attn_mode)
+
             model.model_type_str = model_repo
             dev = safe_get_device(model)
             logger.info(f"Loader: Success. Device: {dev} | Dtype: {torch_dtype}")
@@ -354,9 +360,9 @@ class Qwen3TTSBaseNode:
             "max_new_tokens": (
                 "INT",
                 {
-                    "default": 1024,
+                    "default": 2048,
                     "min": 64,
-                    "max": 4096,
+                    "max": 8192,
                     "step": 64,
                     "display": "number",
                 },
@@ -364,7 +370,7 @@ class Qwen3TTSBaseNode:
             "temperature": (
                 "FLOAT",
                 {
-                    "default": 0.7,
+                    "default": 0.9,
                     "min": 0.1,
                     "max": 2.0,
                     "step": 0.05,
@@ -374,7 +380,7 @@ class Qwen3TTSBaseNode:
             "top_p": (
                 "FLOAT",
                 {
-                    "default": 0.8,
+                    "default": 1.0,
                     "min": 0.1,
                     "max": 1.0,
                     "step": 0.05,
@@ -395,7 +401,42 @@ class Qwen3TTSBaseNode:
                     "display": "number",
                 },
             ),
+            "subtalker_temperature": (
+                "FLOAT",
+                {
+                    "default": 0.9,
+                    "min": 0.1,
+                    "max": 2.0,
+                    "step": 0.05,
+                    "display": "number",
+                },
+            ),
+            "subtalker_top_p": (
+                "FLOAT",
+                {
+                    "default": 1.0,
+                    "min": 0.1,
+                    "max": 1.0,
+                    "step": 0.05,
+                    "display": "number",
+                },
+            ),
+             "subtalker_top_k": (
+                "INT",
+                {"default": 50, "min": 0, "max": 200, "display": "number"},
+            ),
         }
+
+    def _pack_gen_kwargs(self, kwargs):
+        keys = [
+            "max_new_tokens", "temperature", "top_p", "top_k", "repetition_penalty",
+            "subtalker_temperature", "subtalker_top_p", "subtalker_top_k"
+        ]
+        res = {k: kwargs.get(k) for k in keys if k in kwargs}
+
+        res["subtalker_dosample"] = True
+        res["do_sample"] = True
+        return res
 
 
 class Qwen3TTSCustomVoice(Qwen3TTSBaseNode):
@@ -441,7 +482,6 @@ class Qwen3TTSCustomVoice(Qwen3TTSBaseNode):
                     ],
                     {"default": "Auto"},
                 ),
-                # 【新增】输出模式
                 "output_mode": (
                     ["Batch (Separate)", "Concatenate (Merge)"],
                     {"default": "Batch (Separate)"},
@@ -472,14 +512,10 @@ class Qwen3TTSCustomVoice(Qwen3TTSBaseNode):
         text,
         speaker,
         language,
-        output_mode,  # 新增
+        output_mode,
         seed,
         instruct="",
-        max_new_tokens=1024,
-        temperature=0.7,
-        top_p=0.8,
-        top_k=50,
-        repetition_penalty=1.05,
+        **kwargs
     ):
         self._check_model_compatibility(model_obj, ["CustomVoice"])
         clear_memory()
@@ -495,23 +531,13 @@ class Qwen3TTSCustomVoice(Qwen3TTSBaseNode):
         batch_size = len(text_list)
         logger.info(f"Generate: Custom Voice Batch Size: {batch_size} | Device: {dev}")
 
-        if language == "Auto":
-            lang_input = "auto"
-        else:
-            lang_input = language
-
+        lang_input = "auto" if language == "Auto" else language
         language_list = [lang_input] * batch_size
         speaker_list = [real_speaker_id] * batch_size
-        instruct_val = instruct if instruct.strip() else None
+        instruct_val = instruct if instruct.strip() else ""
         instruct_list = [instruct_val] * batch_size
 
-        gen_kwargs = {
-            "max_new_tokens": max_new_tokens,
-            "temperature": temperature,
-            "top_p": top_p,
-            "top_k": top_k,
-            "repetition_penalty": repetition_penalty,
-        }
+        gen_kwargs = self._pack_gen_kwargs(kwargs)
 
         wavs, sr = model_obj.generate_custom_voice(
             text=text_list,
@@ -522,7 +548,6 @@ class Qwen3TTSCustomVoice(Qwen3TTSBaseNode):
         )
 
         do_concat = output_mode == "Concatenate (Merge)"
-        logger.info(f"Generation complete! Mode: {output_mode}")
         return self._convert_audio_to_comfy(wavs, sr, concat=do_concat)
 
 
@@ -562,7 +587,6 @@ class Qwen3TTSVoiceDesign(Qwen3TTSBaseNode):
                     ],
                     {"default": "Chinese"},
                 ),
-                # 【新增】输出模式
                 "output_mode": (
                     ["Batch (Separate)", "Concatenate (Merge)"],
                     {"default": "Batch (Separate)"},
@@ -584,13 +608,9 @@ class Qwen3TTSVoiceDesign(Qwen3TTSBaseNode):
         text,
         voice_instruction,
         language,
-        output_mode,  # 新增
+        output_mode,
         seed,
-        max_new_tokens=1024,
-        temperature=0.7,
-        top_p=0.8,
-        top_k=50,
-        repetition_penalty=1.05,
+        **kwargs
     ):
         self._check_model_compatibility(model_obj, ["VoiceDesign"])
         clear_memory()
@@ -604,7 +624,7 @@ class Qwen3TTSVoiceDesign(Qwen3TTSBaseNode):
 
         instruct_list = [i.strip() for i in voice_instruction.split("\n") if i.strip()]
         if not instruct_list:
-            raise ValueError("Voice instruction cannot be empty.")
+            raise ValueError("Voice instruction cannot be empty. VoiceDesign requires a prompt.")
 
         batch_size = len(text_list)
         logger.info(f"Generate: Voice Design Batch Size: {batch_size} | Device: {dev}")
@@ -612,24 +632,16 @@ class Qwen3TTSVoiceDesign(Qwen3TTSBaseNode):
         final_instructs = []
         if len(instruct_list) == 1:
             final_instructs = instruct_list * batch_size
-            logger.info("Broadcasting single instruction.")
         elif len(instruct_list) == batch_size:
             final_instructs = instruct_list
-            logger.info("Mapping instructions 1:1.")
         else:
             raise ValueError(
-                f"Instruct count {len(instruct_list)} != Text count {batch_size}"
+                f"Instruct count {len(instruct_list)} != Text count {batch_size}. Please provide either 1 instruction (broadcast) or N instructions (one per line)."
             )
 
         language_list = [language] * batch_size
 
-        gen_kwargs = {
-            "max_new_tokens": max_new_tokens,
-            "temperature": temperature,
-            "top_p": top_p,
-            "top_k": top_k,
-            "repetition_penalty": repetition_penalty,
-        }
+        gen_kwargs = self._pack_gen_kwargs(kwargs)
 
         wavs, sr = model_obj.generate_voice_design(
             text=text_list,
@@ -639,7 +651,6 @@ class Qwen3TTSVoiceDesign(Qwen3TTSBaseNode):
         )
 
         do_concat = output_mode == "Concatenate (Merge)"
-        logger.info(f"Voice Design Batch complete! Mode: {output_mode}")
         return self._convert_audio_to_comfy(wavs, sr, concat=do_concat)
 
 
@@ -765,24 +776,20 @@ class Qwen3TTSVoiceClone(Qwen3TTSBaseNode):
         model_obj,
         target_text,
         target_language,
-        output_mode,  # 新增
+        output_mode,
         seed,
         ref_audio=None,
         ref_text="",
         voice_clone_prompt=None,
         enable_x_vector_instant=False,
-        max_new_tokens=1024,
-        temperature=0.7,
-        top_p=0.8,
-        top_k=50,
-        repetition_penalty=1.05,
+        **kwargs
     ):
-
         self._check_model_compatibility(model_obj, ["Base"])
         clear_memory()
         set_random_seed(seed)
 
         dev = safe_get_device(model_obj)
+        gen_kwargs = self._pack_gen_kwargs(kwargs)
 
         text_list = [t.strip() for t in target_text.split("\n") if t.strip()]
         if not text_list:
@@ -793,12 +800,12 @@ class Qwen3TTSVoiceClone(Qwen3TTSBaseNode):
 
         batch_size = len(text_list)
         logger.info(
-            f"Generate: Clone Batch Size: {batch_size} on {dev} | Tokens: {max_new_tokens}"
+            f"Generate: Clone Batch Size: {batch_size} on {dev}"
         )
 
-        if "cpu" in str(dev).lower() and max_new_tokens > 512:
-            logger.warning("CPU Mode Detected: Reducing max_new_tokens to 512.")
-            max_new_tokens = 512
+        if "cpu" in str(dev).lower() and gen_kwargs.get("max_new_tokens", 1024) > 512:
+            logger.warning("CPU Mode Detected: Reducing max_new_tokens to 512 to prevent freeze.")
+            gen_kwargs["max_new_tokens"] = 512
 
         prompt_item = None
         pbar = ProgressBar(100)
@@ -810,7 +817,7 @@ class Qwen3TTSVoiceClone(Qwen3TTSBaseNode):
         elif ref_audio is not None:
             if not enable_x_vector_instant and not ref_text.strip():
                 raise ValueError("Reference Text (ref_text) is required unless X-Vector Only is enabled.")
-            ref_wav, ref_sr = self._audio_tensor_to_numpy_tuple(ref_audio) #
+            ref_wav, ref_sr = self._audio_tensor_to_numpy_tuple(ref_audio)
             prompt_item = model_obj.create_voice_clone_prompt(
                 ref_audio=(ref_wav, ref_sr),
                 ref_text=ref_text if not enable_x_vector_instant else None,
@@ -823,14 +830,6 @@ class Qwen3TTSVoiceClone(Qwen3TTSBaseNode):
 
         language_list = [target_language] * batch_size
 
-        gen_kwargs = {
-            "max_new_tokens": max_new_tokens,
-            "temperature": temperature,
-            "top_p": top_p,
-            "top_k": top_k,
-            "repetition_penalty": repetition_penalty,
-        }
-
         try:
             wavs, sr = model_obj.generate_voice_clone(
                 text=text_list,
@@ -841,7 +840,6 @@ class Qwen3TTSVoiceClone(Qwen3TTSBaseNode):
 
             pbar.update(100)
             do_concat = output_mode == "Concatenate (Merge)"
-            logger.info(f"Generation complete! Mode: {output_mode}")
             return self._convert_audio_to_comfy(wavs, sr, concat=do_concat)
 
         except Exception as e:
@@ -1194,6 +1192,8 @@ class Qwen3TTSAdvancedDialogue(Qwen3TTSBaseNode):
         all_segments = []
         sr = 24000
 
+        gen_kwargs = self._pack_gen_kwargs(kwargs)
+
         for i in range(len(texts)):
             if roles[i] == "PAUSE":
                 silence_duration = pauses[i]
@@ -1206,7 +1206,10 @@ class Qwen3TTSAdvancedDialogue(Qwen3TTSBaseNode):
                 print(
                     f"Warning: Role '{roles[i]}' not found in RoleBank, using default."
                 )
-                prompt = list(role_bank.values())[0]
+                if role_bank:
+                    prompt = list(role_bank.values())[0]
+                else:
+                    raise ValueError(f"RoleBank is empty, cannot generate voice for {roles[i]}")
             else:
                 prompt = role_bank[roles[i]]
 
@@ -1215,7 +1218,7 @@ class Qwen3TTSAdvancedDialogue(Qwen3TTSBaseNode):
                 language=["auto"],
                 voice_clone_prompt=prompt,
                 instruct=[instructs[i]],
-                **kwargs,
+                **gen_kwargs,
             )
 
             audio_segment = wavs[0]
